@@ -1,0 +1,77 @@
+{
+  "Version": 1,
+  "Hash": "uzzJow5jPie6Bo8293yPLMBMi8NTi1+nklnIsP1yoW4=",
+  "Source": "blockchain cos thesis",
+  "BasePath": "_content/blockchain cos thesis",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "blockchain cos thesis/wwwroot",
+      "Source": "blockchain cos thesis",
+      "ContentRoot": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/",
+      "BasePath": "_content/blockchain cos thesis",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/index.html",
+      "SourceId": "blockchain cos thesis",
+      "SourceType": "Discovered",
+      "ContentRoot": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/",
+      "BasePath": "_content/blockchain cos thesis",
+      "RelativePath": "index.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/index.html"
+    },
+    {
+      "Identity": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/index.js",
+      "SourceId": "blockchain cos thesis",
+      "SourceType": "Discovered",
+      "ContentRoot": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/",
+      "BasePath": "_content/blockchain cos thesis",
+      "RelativePath": "index.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/index.js"
+    },
+    {
+      "Identity": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/styles.css",
+      "SourceId": "blockchain cos thesis",
+      "SourceType": "Discovered",
+      "ContentRoot": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/",
+      "BasePath": "_content/blockchain cos thesis",
+      "RelativePath": "styles.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/styles.css"
+    }
+  ]
+}

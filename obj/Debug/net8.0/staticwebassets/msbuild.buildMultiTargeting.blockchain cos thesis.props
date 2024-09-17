@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/blockchain cos thesis.props" />
+</Project>

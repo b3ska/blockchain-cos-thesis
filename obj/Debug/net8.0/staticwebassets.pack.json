@@ -1,0 +1,33 @@
+{
+  "Files": [
+    {
+      "Id": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/index.html",
+      "PackagePath": "staticwebassets/index.html"
+    },
+    {
+      "Id": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/index.js",
+      "PackagePath": "staticwebassets/index.js"
+    },
+    {
+      "Id": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/styles.css",
+      "PackagePath": "staticwebassets/styles.css"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.blockchain cos thesis.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.build.blockchain cos thesis.props",
+      "PackagePath": "build\\blockchain cos thesis.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.blockchain cos thesis.props",
+      "PackagePath": "buildMultiTargeting\\blockchain cos thesis.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.blockchain cos thesis.props",
+      "PackagePath": "buildTransitive\\blockchain cos thesis.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

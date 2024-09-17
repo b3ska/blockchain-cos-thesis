@@ -1,0 +1,26 @@
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/bin/Debug/net8.0/appsettings.Development.json
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/bin/Debug/net8.0/appsettings.json
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/bin/Debug/net8.0/blockchain cos thesis
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/bin/Debug/net8.0/blockchain cos thesis.deps.json
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/bin/Debug/net8.0/blockchain cos thesis.runtimeconfig.json
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/bin/Debug/net8.0/blockchain cos thesis.dll
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/bin/Debug/net8.0/blockchain cos thesis.pdb
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/blockchain cos thesis.GeneratedMSBuildEditorConfig.editorconfig
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/blockchain cos thesis.AssemblyInfoInputs.cache
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/blockchain cos thesis.AssemblyInfo.cs
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/blockchain cos thesis.csproj.CoreCompileInputs.cache
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/blockchain cos thesis.MvcApplicationPartsAssemblyInfo.cache
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/staticwebassets.build.json
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/staticwebassets.development.json
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/staticwebassets/msbuild.blockchain cos thesis.Microsoft.AspNetCore.StaticWebAssets.props
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/staticwebassets/msbuild.build.blockchain cos thesis.props
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.blockchain cos thesis.props
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.blockchain cos thesis.props
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/staticwebassets.pack.json
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/scopedcss/bundle/blockchain cos thesis.styles.css
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/blockchain cos thesis.dll
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/refint/blockchain cos thesis.dll
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/blockchain cos thesis.pdb
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/blockchain cos thesis.genruntimeconfig.cache
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/ref/blockchain cos thesis.dll
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/bin/Debug/net8.0/blockchain cos thesis.staticwebassets.runtime.json
