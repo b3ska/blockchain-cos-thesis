@@ -9,11 +9,12 @@
 </head>
 <body>
     <h1>Blockchain Viewer</h1>
-    <button onclick="fetchBlocks()">Get Blocks</button>
-    <button onclick="searchBlock()">Search Block</button>
-    <button onclick="createBlock()">Create Block</button>
-    
-    <div id="result"></div>
-
+    <div class="buttons">
+        <button onclick="fetchBlocks()">Get Blocks</button>
+        <button onclick="searchBlock()">Search Block</button>
+        <button onclick="createBlock()">Create Block</button>
+    </div>
+    <div class="blocks" id="blocks">
+    </div>
 </body>
 </html>

@@ -24,3 +24,5 @@
 /home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/blockchain cos thesis.genruntimeconfig.cache
 /home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/ref/blockchain cos thesis.dll
 /home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/bin/Debug/net8.0/blockchain cos thesis.staticwebassets.runtime.json
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/Debug/net8.0/blockchain cos thesis.sourcelink.json
+/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/bin/Debug/net8.0/knownNodes.json

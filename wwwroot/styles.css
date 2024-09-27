@@ -20,3 +20,29 @@ button {
   border: 1px solid #ccc;
   background-color: #f9f9f9;
 }
+
+/* Styling for individual blocks */
+.block {
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 600px; /* Adjust width as needed */
+  height: 400px;
+}
+
+.blocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.data-block {
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px grey;
+  margin: 4px;
+}

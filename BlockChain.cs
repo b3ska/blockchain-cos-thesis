@@ -1,5 +1,5 @@
-class BlockChain {
-  List<Block> chain;
+class BlockChain  {
+  private List<Block> chain;
 
   public BlockChain () {
     chain = [Block.GenesisBlock ()];
@@ -10,7 +10,8 @@ class BlockChain {
   }
 
   public Block? GetBlockByData (string data) {
-      return chain.Find (block => block.data == data);
+      chain.Last().data.Contains(data);
+      return chain.Find (block => block.data.Contains (data));
   }
 
   public Block? GetBlockByHash (string hash) {
@@ -22,21 +23,21 @@ class BlockChain {
     return "Block created successfully";
   }
 
-  public bool IsValid () {
-    for (int i = 1; i < chain.Count; i++) {
-      var currentBlock = chain[i];
-      var previousBlock = chain[i - 1];
+  // public bool IsValid () {
+  //   for (int i = 1; i < chain.Count; i++) {
+  //     var currentBlock = chain[i];
+  //     var previousBlock = chain[i - 1];
 
-      if (currentBlock.hash != currentBlock.CalculateHash ()) {
-        return false;
-      }
+  //     if (currentBlock.hash != currentBlock.MineBlock ()) {
+  //       return false;
+  //     }
 
-      if (currentBlock.prevHash != previousBlock.hash) {
-        return false;
-      }
-    }
+  //     if (currentBlock.prevHash != previousBlock.hash) {
+  //       return false;
+  //     }
+  //   }
 
-    return true;
+  //   return true;
   
-  }
+  // }
 }
