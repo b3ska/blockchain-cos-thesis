@@ -25,11 +25,11 @@ class Node {
         Nodes = new List<Node>();
     }
 
-    public void ConnectNode(Node node) {
+    public void ConnectNode(Node node) { // TODO: implement a tree structure for the nodes, higher nodes mined blocks are worth more
         Nodes.Add(node);
     }
 
-    public void SyncChain() {
+    public void SyncChain() {   // TODO: implement validation of the chain, and only sync if the chain is valid
         foreach (var node in Nodes) {
             if (node.Chain.GetBlocks().Count > Chain.GetBlocks().Count) {
                 Chain = node.Chain;

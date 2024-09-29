@@ -23,6 +23,10 @@ class BlockChain  {
     return "Block created successfully";
   }
 
+  public Block GetLastBlock () {
+    return chain.Last ();
+  }
+
   // public bool IsValid () {
   //   for (int i = 1; i < chain.Count; i++) {
   //     var currentBlock = chain[i];

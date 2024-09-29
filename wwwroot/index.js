@@ -24,6 +24,14 @@ async function fetchBlocks() {
   });
 }
 
+async function mineBlocks() {
+  const response = await fetch('/mine');
+  const result = await response.text();
+  document.getElementById('result').innerText = result;
+  fetchBlocks();
+}
+
+
 
 async function searchBlock() {
   const data = prompt('Enter block data to search for:');
@@ -58,6 +66,5 @@ async function createBlock() {
       fetchBlocks();
   }
 }
-
 
 fetchBlocks();

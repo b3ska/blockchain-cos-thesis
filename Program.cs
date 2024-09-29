@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Http;
 using System.Net.Sockets;
 using TcpClient = System.Net.Sockets.TcpClient;
-using TcpListener = System.Net.Sockets.TcpListener;\
+using TcpListener = System.Net.Sockets.TcpListener;
 
 using var httpClient = new HttpClient(); // only for automatic public IP detection
 var publicIp = await httpClient.GetStringAsync("https://api.ipify.org");
@@ -54,8 +54,23 @@ app.MapPost("/create", async (HttpContext httpContext) =>
     using var reader = new StreamReader(httpContext.Request.Body);
     var data = await reader.ReadToEndAsync();
     Console.WriteLine(data);
-    blockchain.AddBlock(data);
-    return Results.Text("Block created successfully");
+    host.PendingBlocks.Add(Block.NewBlock(blockchain.GetLastBlock(), data));
+    return Results.Text("Block added to que of pending blocks");
+});
+
+app.MapPost("/mine", async (HttpContext httpContext) =>
+{
+    using var reader = new StreamReader(httpContext.Request.Body);
+    var data = await reader.ReadToEndAsync();
+    Console.WriteLine(data);
+    foreach (var block in host.PendingBlocks) {
+        block.MineBlock(host.privateKey, host.publicKey);
+        blockchain.AddBlock(data);
+        host.PendingBlocks.Remove(block);
+        return Results.Text($"Block {block} was mined and added to the blockchain");
+    }
+    return Results.Text("No blocks to mine");
+
 });
 
 app.Run();
