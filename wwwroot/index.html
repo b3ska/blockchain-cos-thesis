@@ -14,7 +14,13 @@
         <button onclick="searchBlock()">Search Block</button>
         <button onclick="createBlock()">Create Block</button>
     </div>
-    <div class="blocks" id="blocks">
+
+    <div class="blocks" id="blocks"></div>
+    <div>
+        <label for="mineCheckbox">Enable Mining</label>
+        <input type="checkbox" id="mineCheckbox" onclick="toggleMining()" />
     </div>
+
+    <div id="result"></div>
 </body>
 </html>

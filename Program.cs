@@ -12,7 +12,10 @@ var publicIp = await httpClient.GetStringAsync("https://api.ipify.org");
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
-// TODO: ask user to fill the data, write json
+
+// Load known nodes from JSON
+string json = System.IO.File.ReadAllText("known_nodes.json");
+Dictionary<string, string> knownNodes = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
 
 Node host = new Node("Artem Kalmakov", "banana computer graph", publicIp);
 var blockchain = host.Chain;
@@ -20,6 +23,44 @@ var blockchain = host.Chain;
 app.UseStaticFiles();
 
 Console.WriteLine(publicIp + " is your public IP address that will be used to host the node");
+
+// Connect to each known node's IP
+foreach (var nodeEntry in knownNodes)
+{
+    string publicKey = nodeEntry.Key;
+    string nodeIp = nodeEntry.Value;
+
+    Console.WriteLine($"Connecting to node with public key: {publicKey} at IP: {nodeIp}");
+
+    // Connect to the node via its IP
+    using (TcpClient client = new TcpClient())
+    {
+        try
+        {
+            await client.ConnectAsync(nodeIp, 8080); // Port 8080, change as needed
+            Console.WriteLine($"Connected to {nodeIp}");
+
+            // Send your node's public key and request chain sync
+            NetworkStream stream = client.GetStream();
+            byte[] data = System.Text.Encoding.UTF8.GetBytes($"SYNC_REQUEST:{host.publicKey}");
+            await stream.WriteAsync(data, 0, data.Length);
+
+            // Read response (example: getting the blockchain)
+            byte[] buffer = new byte[1024];
+            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+            string response = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            Console.WriteLine($"Received from {nodeIp}: {response}");
+
+            // You can process the response, such as updating your blockchain
+            // Assume the response contains blockchain data or a message
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to connect to {nodeIp}: {ex.Message}");
+        }
+    }
+}
 
 app.MapGet("/", () => Results.Content(System.IO.File.ReadAllText("wwwroot/index.html"), "text/html"));
 
@@ -55,7 +96,7 @@ app.MapPost("/create", async (HttpContext httpContext) =>
     var data = await reader.ReadToEndAsync();
     Console.WriteLine(data);
     host.PendingBlocks.Add(Block.NewBlock(blockchain.GetLastBlock(), data));
-    return Results.Text("Block added to que of pending blocks");
+    return Results.Text("Block added to queue of pending blocks");
 });
 
 app.MapPost("/mine", async (HttpContext httpContext) =>
@@ -70,7 +111,15 @@ app.MapPost("/mine", async (HttpContext httpContext) =>
         return Results.Text($"Block {block} was mined and added to the blockchain");
     }
     return Results.Text("No blocks to mine");
-
 });
+
+app.MapGet("/pendingBlocks", () =>
+{
+    var pendingBlocks = host.PendingBlocks; // Assuming host has a property PendingBlocks
+    return Results.Json(pendingBlocks);
+});
+
+
+
 
 app.Run();
