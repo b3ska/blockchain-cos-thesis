@@ -20,8 +20,8 @@ class BlockChain  {
       return chain.Find (block => block.hash == hash);
   }
 
-  public string AddBlock (string data) {
-    chain.Add (Block.NewBlock (chain.Last (), data)); 
+  public string AddBlock (Block block) {
+    chain.Add (block); 
     return "Block created successfully";
   }
 

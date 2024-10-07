@@ -37,22 +37,17 @@ foreach (var nodeEntry in knownNodes)
     {
         try
         {
-            await client.ConnectAsync(nodeIp, 8080); // Port 8080, change as needed
+            await client.ConnectAsync(nodeIp, 8080); 
             Console.WriteLine($"Connected to {nodeIp}");
 
-            // Send your node's public key and request chain sync
             NetworkStream stream = client.GetStream();
             byte[] data = System.Text.Encoding.UTF8.GetBytes($"SYNC_REQUEST:{host.publicKey}");
             await stream.WriteAsync(data, 0, data.Length);
 
-            // Read response (example: getting the blockchain)
             byte[] buffer = new byte[1024];
             int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
             string response = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
             Console.WriteLine($"Received from {nodeIp}: {response}");
-
-            // You can process the response, such as updating your blockchain
-            // Assume the response contains blockchain data or a message
 
         }
         catch (Exception ex)
@@ -105,8 +100,9 @@ app.MapPost("/mine", async (HttpContext httpContext) =>
     var data = await reader.ReadToEndAsync();
     Console.WriteLine(data);
     foreach (var block in host.PendingBlocks) {
+        block.prevHash = blockchain.GetLastBlock().hash;
         block.MineBlock(host.privateKey, host.publicKey);
-        blockchain.AddBlock(data);
+        blockchain.AddBlock(block);
         host.PendingBlocks.Remove(block);
         return Results.Text($"Block {block} was mined and added to the blockchain");
     }

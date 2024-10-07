@@ -17,11 +17,11 @@ class Node {
     public Node(string name, string keywords, string address) {
         var Sha256 = SHA256.Create();
         Name = name;
-        publicKey = BitConverter.ToString(
-            Sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes($"{keywords}{name}"))
-        ).Replace("-", "");
         privateKey = BitConverter.ToString(
             Sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes($"{keywords}{name}"))
+        ).Replace("-", "");
+        publicKey = BitConverter.ToString(
+            Sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes($"{privateKey}"))
         ).Replace("-", "");
         this.address = address;
         Chain = new BlockChain();
