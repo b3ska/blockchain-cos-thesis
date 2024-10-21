@@ -6,67 +6,64 @@ using Microsoft.AspNetCore.Http;
 using System.Net.Sockets;
 using TcpClient = System.Net.Sockets.TcpClient;
 using TcpListener = System.Net.Sockets.TcpListener;
+using System.Net;
+using Microsoft.Extensions.FileProviders;
+using System.Security.Cryptography;
 
 using var httpClient = new HttpClient(); // only for automatic public IP detection
 var publicIp = await httpClient.GetStringAsync("https://api.ipify.org");
+Console.WriteLine(publicIp + " is your public IP address that will be used to host the node");
+
+var fileDirectory = "files/";
+
+if (!Directory.Exists(fileDirectory)) Directory.CreateDirectory(fileDirectory);
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
 // Load known nodes from JSON
-string json = System.IO.File.ReadAllText("known_nodes.json");
+string json = File.ReadAllText("known_nodes.json");
 Dictionary<string, string> knownNodes = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
 
-Node host = new Node("Artem Kalmakov", "banana computer graph", publicIp);
-var blockchain = host.Chain;
+Node host = new Node("Artem Kalmakov", "banana computer graph", IPAddress.Parse(publicIp));
+var blockchain = host.chain;
+
+if (knownNodes.ContainsKey(host.publicKey)) {
+    if (knownNodes[host.publicKey] == publicIp) Console.WriteLine("This node is already known and has the same IP");
+    else {
+        knownNodes[host.publicKey] = publicIp;
+        Console.WriteLine("This node is already known but has a different IP, updating the known nodes list");
+    }
+} else {
+    knownNodes.Add(host.publicKey, publicIp);
+    json = JsonSerializer.Serialize(knownNodes);
+    File.WriteAllText("known_nodes.json", json);
+    Console.WriteLine("This node is new and has been added to the known nodes list");
+}
 
 app.UseStaticFiles();
 
-Console.WriteLine(publicIp + " is your public IP address that will be used to host the node");
-
-// Connect to each known node's IP
-foreach (var nodeEntry in knownNodes)
-{
+foreach (var nodeEntry in knownNodes) {
     string publicKey = nodeEntry.Key;
     string nodeIp = nodeEntry.Value;
+    // TODO: create node, recieve chain from it
+    if (nodeIp == publicIp) continue;
 
-    Console.WriteLine($"Connecting to node with public key: {publicKey} at IP: {nodeIp}");
-
-    // Connect to the node via its IP
-    using (TcpClient client = new TcpClient())
-    {
-        try
-        {
-            await client.ConnectAsync(nodeIp, 8080); 
-            Console.WriteLine($"Connected to {nodeIp}");
-
-            NetworkStream stream = client.GetStream();
-            byte[] data = System.Text.Encoding.UTF8.GetBytes($"SYNC_REQUEST:{host.publicKey}");
-            await stream.WriteAsync(data, 0, data.Length);
-
-            byte[] buffer = new byte[1024];
-            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-            string response = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
-            Console.WriteLine($"Received from {nodeIp}: {response}");
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to connect to {nodeIp}: {ex.Message}");
-        }
-    }
+    // recieve chain from node
+    var node = new Node(publicKey, IPAddress.Parse(nodeIp));
+    await node.ConnectNode();
+    Console.WriteLine($"Synchronising chain with node with public key: {publicKey} at IP: {nodeIp}");
+    
 }
 
-app.MapGet("/", () => Results.Content(System.IO.File.ReadAllText("wwwroot/index.html"), "text/html"));
+app.MapGet("/", () => Results.Content(File.ReadAllText("wwwroot/index.html"), "text/html"));
 
-app.MapGet("/blocks", () =>
-{
+app.MapGet("/blocks", () => {
     var blocks = blockchain.GetBlocks();
     return Results.Json(blocks);
 });
 
-app.MapGet("/searchData", (string data) =>
-{
+app.MapGet("/searchData", (string data) => {
     var block = blockchain.GetBlockByData(data);
     if (block == null)
     {
@@ -75,8 +72,7 @@ app.MapGet("/searchData", (string data) =>
     return Results.Json(block);
 });
 
-app.MapGet("/searchHash", (string hash) =>
-{
+app.MapGet("/searchHash", (string hash) => {
     var block = blockchain.GetBlockByHash(hash);
     if (block == null)
     {
@@ -87,35 +83,65 @@ app.MapGet("/searchHash", (string hash) =>
 
 app.MapPost("/create", async (HttpContext httpContext) =>
 {
-    using var reader = new StreamReader(httpContext.Request.Body);
-    var data = await reader.ReadToEndAsync();
-    Console.WriteLine(data);
-    host.PendingBlocks.Add(Block.NewBlock(blockchain.GetLastBlock(), data));
+    var form = await httpContext.Request.ReadFormAsync(); // Read the form data
+
+    // Handle raw text data (blockData)
+    var blockData = form["blockData"].ToString(); // Retrieve the text data if available
+
+    // Handle file input (optional)
+    var fileInput = form.Files["fileInput"]; // Retrieve the file input if it exists
+    string fileContent = string.Empty;
+    string filePath = string.Empty;
+    
+    if (fileInput != null) {
+        var fileName = fileInput.FileName; // Use the original file name
+        filePath = Path.Combine(fileDirectory, fileName);
+        using (var stream = new FileStream(filePath, FileMode.Create)) {
+            await fileInput.CopyToAsync(stream); // Save the file to the specified path
+        }
+        
+        fileContent = $"/files/{fileName}";
+        Console.WriteLine(fileContent);
+    }
+    var data = !string.IsNullOrEmpty(blockData) ? blockData : fileContent;
+    if (!string.IsNullOrEmpty(data)) {
+        Console.WriteLine($"Block Data: {data}");
+        // Add the block to the pending blocks queue
+        host.pendingBlocks.Add(Block.NewBlock(blockchain.GetLastBlock(), data));
+    } else {
+        return Results.BadRequest("No data provided in block creation.");
+    }
+
     return Results.Text("Block added to queue of pending blocks");
 });
 
-app.MapPost("/mine", async (HttpContext httpContext) =>
-{
+
+
+app.MapPost("/mine", async (HttpContext httpContext) => {
     using var reader = new StreamReader(httpContext.Request.Body);
     var data = await reader.ReadToEndAsync();
     Console.WriteLine(data);
-    foreach (var block in host.PendingBlocks) {
+    foreach (var block in host.pendingBlocks) {
         block.prevHash = blockchain.GetLastBlock().hash;
         block.MineBlock(host.privateKey, host.publicKey);
         blockchain.AddBlock(block);
-        host.PendingBlocks.Remove(block);
+        host.pendingBlocks.Remove(block);
         return Results.Text($"Block {block} was mined and added to the blockchain");
     }
     return Results.Text("No blocks to mine");
 });
 
-app.MapGet("/pendingBlocks", () =>
-{
-    var pendingBlocks = host.PendingBlocks; // Assuming host has a property PendingBlocks
+app.MapGet("/pendingBlocks", () => {
+    var pendingBlocks = host.pendingBlocks; // Assuming host has a property PendingBlocks
     return Results.Json(pendingBlocks);
 });
 
-
+app.UseStaticFiles(new StaticFileOptions {
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "files")),
+    RequestPath = "/files",
+    ServeUnknownFileTypes = true, // This will serve files with unknown MIME types
+    DefaultContentType = "application/octet-stream" // Default MIME type if none is provided
+});
 
 
 app.Run();

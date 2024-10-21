@@ -9,11 +9,21 @@
 </head>
 <body>
     <h1>Blockchain Viewer</h1>
+
     <div class="buttons">
         <button onclick="fetchBlocks()">Get Blocks</button>
         <button onclick="searchBlock()">Search Block</button>
-        <button onclick="createBlock()">Create Block</button>
     </div>
+
+    <form id="blockForm" enctype="multipart/form-data">
+        <label for="blockData">Enter Block Data:</label><br>
+        <textarea id="blockData" name="blockData" rows="4" cols="50"></textarea><br><br>
+
+        <label for="fileInput">Or upload a file:</label><br>
+        <input type="file" id="fileInput" name="fileInput"><br><br>
+
+        <button type="button" onclick="createBlock()">Create Block</button>
+    </form>
 
     <div class="blocks" id="blocks"></div>
     <div>

@@ -1,117 +1,199 @@
-using System.Runtime.Intrinsics.Arm;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.Tracing;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography;
-using Microsoft.VisualBasic;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
-class Node {
-    public string Name { get; set; }
+class Node
+{
     public string publicKey { get; set; }
     public string privateKey { get; set; }
-    public string address { get; set; }
-    public string Status { get; set; } // e.g., "Connected", "Disconnected", etc.
+    public IPAddress address { get; set; }
+    public string status { get; set; }
+    public BlockChain chain { get; set; }
+    public List<Block> pendingBlocks { get; set; }
+    public List<Node> nodes {get; set;}
 
-    public BlockChain Chain { get; set; }
-    public List<Block> PendingBlocks { get; set; }
-    public Node ParentNode { get; set; }
-    public List<Node> ChildNodes { get; set; }
-
-    public Node(string name, string keywords, string address) {
-        var Sha256 = SHA256.Create();
-        Name = name;
-        privateKey = BitConverter.ToString(
-            Sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes($"{keywords}{name}"))
-        ).Replace("-", "");
-        publicKey = BitConverter.ToString(
-            Sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes($"{privateKey}"))
-        ).Replace("-", "");
+    public Node(string name, string keywords, IPAddress address)
+    {
+        var sha256 = SHA256.Create();
+        privateKey = BitConverter.ToString(sha256.ComputeHash(Encoding.UTF8.GetBytes($"{keywords}{name}"))).Replace("-", "").ToLower();
+        publicKey = BitConverter.ToString(sha256.ComputeHash(Encoding.UTF8.GetBytes(privateKey))).Replace("-", "").ToLower();
         this.address = address;
-        Chain = new BlockChain();
-        PendingBlocks = new List<Block>();
-        ChildNodes = new List<Node>();
-        ParentNode = null;
+        chain = new BlockChain();
+        pendingBlocks = new List<Block>();
+
     }
 
-    // Count how many blocks this node has mined based on the block's signature (public key)
-    public int GetMinedBlockCount() {
-        return Chain.GetBlocks().Count(block => block.signature == this.publicKey);
+    public Node (string publicKey, IPAddress address) {
+        this.publicKey = publicKey;
+        this.address = address;
     }
 
-    // Adds a new node either as a peer or a child depending on its mined block count
-    public void ConnectNode(Node node) {
-        int currentNodeMinedCount = GetMinedBlockCount();
-        int newNodeMinedCount = node.GetMinedBlockCount();
+    public async Task ConnectNode()
+    {
+        int retries = 3;
+        while (retries > 0)
+        {
+            using TcpClient client = new();
+            try
+            {
+                await client.ConnectAsync(address, 8080);
+                Console.WriteLine($"{address} | {status}");
+                this.status = "Connected";
 
-        if (newNodeMinedCount > currentNodeMinedCount) {
-            // New node has mined more blocks, it becomes a parent
-            node.ChildNodes.Add(this);  // Current node becomes a child of the new node
-            if (this.ParentNode != null) {
-                // Reassign the parent if this node had one
-                this.ParentNode.ChildNodes.Remove(this);
-                this.ParentNode = node;
+                _ = this.ReceiveChain();
+                break;
             }
-        } else if (newNodeMinedCount == currentNodeMinedCount) {
-            // New node has mined the same amount of blocks, make it a peer
-            if (this.ParentNode != null) {
-                this.ParentNode.ChildNodes.Add(node);  // Both nodes share the same parent
-                node.ParentNode = this.ParentNode;
-            } else {
-                // Special case: if there is no parent, treat this as a root peer node
-                this.ChildNodes.Add(node);
-                node.ParentNode = this;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to connect to {address}: {ex.Message}");
+                this.status = "Disconnected";
+                retries--;
+                await Task.Delay(2000);
             }
-        } else {
-            // New node has mined fewer blocks, it becomes a child of the current node
-            ChildNodes.Add(node);
-            node.ParentNode = this;
+        }
+    }
+
+    public async Task SendChainToAll() {
+        foreach (Node n in nodes) {
+            await SendChain(n.address.ToString());
         }
     }
 
-    // Sync chain with the highest node in the tree
-public void SyncChain() {
-    // Start syncing with the highest node in the hierarchy
-    Node highestNode = GetHighestNodeInHierarchy();
-    
-    // Check if the highest node's chain has more blocks than the current node's chain
-    if (highestNode != null && highestNode.Chain.GetBlocks().Count > Chain.GetBlocks().Count) {
-        Chain = highestNode.Chain;  // Sync to the highest chain found in the hierarchy
-    }
-}
+    public async Task SendChain(string nodeIp)
+    {
+        int retries = 3;
+        while (retries > 0)
+        {
+            using TcpClient client = new();
+            try
+            {
+                await client.ConnectAsync(nodeIp, 8080);
+                Console.WriteLine($"Connected to {nodeIp}");
 
-// Helper method to traverse the hierarchy and find the highest node in the tree structure
-private Node GetHighestNodeInHierarchy() {
-    // We start from the current node and will compare it with its parent and peers
-    Node highestNode = this;
-    
-    // Traverse up through the parent hierarchy
-    Node currentNode = this.ParentNode;
-    while (currentNode != null) {
-        // If the parent node has more blocks mined, it becomes the new highest node
-        if (currentNode.Chain.GetBlocks().Count > highestNode.Chain.GetBlocks().Count) {
-            highestNode = currentNode;
-        }
-        
-        // Compare the parent node's peers as well (nodes at the same level)
-        foreach (var peer in currentNode.ChildNodes) {
-            if (peer != this && peer.Chain.GetBlocks().Count > highestNode.Chain.GetBlocks().Count) {
-                highestNode = peer;
+                await SendChainMessage(client);
+                break;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to connect to {nodeIp}: {ex.Message}");
+                retries--;
+                await Task.Delay(2000);
             }
         }
-        
-        // Move up the hierarchy to the parent node
-        currentNode = currentNode.ParentNode;
     }
 
-    return highestNode;  // Return the highest node found
-}
+    private async Task SendChainMessage(TcpClient client)
+    {
+        var messageObject = new
+        {
+            PublicKey = this.publicKey,
+            Chain = chain.GetBlocks()
+        };
+        string messageJson = JsonSerializer.Serialize(messageObject);
+        byte[] data = Encoding.UTF8.GetBytes($"CHAIN_UPDATE:{messageJson}");
+        NetworkStream stream = client.GetStream();
+        await stream.WriteAsync(data, 0, data.Length);
+    }
 
-    // Recursive function to get the highest node in the tree
-    private Node GetHighestNode() {
-        Node highest = this;
-        foreach (var child in ChildNodes) {
-            var highestChild = child.GetHighestNode();
-            if (highestChild.GetMinedBlockCount() > highest.GetMinedBlockCount()) {
-                highest = highestChild;
+
+    public async Task ReceiveChain()
+    {
+        TcpListener listener = new TcpListener(address, 8080);
+        listener.Start();
+        Console.WriteLine("Node is listening for incoming chain updates...");
+
+        while (true)
+        {
+            TcpClient client = await listener.AcceptTcpClientAsync();
+            _ = Task.Run(() => HandleClient(client));
+        }
+    }
+
+    private async Task HandleClient(TcpClient client)
+    {
+        try
+        {
+            using NetworkStream stream = client.GetStream();
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            string message = await reader.ReadToEndAsync();
+
+            if (message.StartsWith("CHAIN_UPDATE:"))
+            {
+                string serializedMessage = message.Substring("CHAIN_UPDATE:".Length);
+                HandleChainUpdate(serializedMessage);
+            }
+            else
+            {
+                Console.WriteLine("Received unknown message format.");
             }
         }
-        return highest;
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error handling client: {ex.Message}");
+        }
+        finally
+        {
+            client.Close();
+        }
+    }
+
+    private async void HandleChainUpdate(string serializedMessage)
+    {
+        var messageObject = JsonSerializer.Deserialize<ChainUpdateMessage>(serializedMessage);
+
+        if (messageObject != null)
+        {
+            string senderPublicKey = messageObject.PublicKey;
+            List<Block> receivedChainBlocks = messageObject.Chain;
+
+            Console.WriteLine($"Received chain update from node with public key: {senderPublicKey}");
+
+            Node sendingNode = FindNodeByPublicKey(senderPublicKey);
+
+            if (sendingNode != null)
+            {
+                BlockChain recievedChain = new BlockChain(receivedChainBlocks);
+                if (recievedChain.getChainLen() > chain.getChainLen() && recievedChain.IsValid()) {
+                    chain = recievedChain;
+                    Console.WriteLine($"Updated blockchain of node {senderPublicKey}");
+                }
+                else {
+                    Console.WriteLine("Recieved chain is smaller or not valid, keeping previous one, sending valid to the node");
+                    await SendChain(sendingNode.address.ToString());
+                }
+
+            }
+            else
+            {
+                Console.WriteLine($"Node with public key {senderPublicKey} not found. Adding as a new node.");
+                
+                Node newNode = new Node(senderPublicKey, sendingNode.address);
+                newNode.chain = new BlockChain(receivedChainBlocks);
+
+                nodes.Add(newNode);
+            }
+        }
+        else
+        {
+            Console.WriteLine("Failed to deserialize chain update message.");
+        }
+    }
+
+    private Node FindNodeByPublicKey(string publicKey)
+    {
+        return nodes.Find(node => node.publicKey == publicKey);
+    }
+
+    private class ChainUpdateMessage
+    {
+        public string PublicKey { get; set; }
+        public List<Block> Chain { get; set; }
     }
 }
