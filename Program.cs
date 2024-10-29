@@ -50,7 +50,7 @@ foreach (var nodeEntry in knownNodes) {
 
     // recieve chain from node
     var node = new Node(publicKey, IPAddress.Parse(nodeIp));
-    await node.ConnectNode();
+    await host.ConnectNode(node);
     Console.WriteLine($"Synchronising chain with node with public key: {publicKey} at IP: {nodeIp}");
     
 }
