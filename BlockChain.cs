@@ -2,11 +2,14 @@ using System.Security.Cryptography;
 
 class BlockChain  {
   private List<Block> chain;
+
+  public List<Block> pendingBlocks;
   private int totalWork;
 
   public BlockChain() {
     chain = new List<Block> { Block.GenesisBlock() };
     totalWork = chain[0].nonce;
+    pendingBlocks = new List<Block>();
   }
 
   public BlockChain(List<Block> chain) {
@@ -23,12 +26,22 @@ class BlockChain  {
 
   public Block? GetBlockByHash(string hash) => chain.Find(block => block.hash == hash);
 
-  public Block GetLastBlock() => chain.Last();
+  public Block GetLastBlock(bool isMined) {
+    if (pendingBlocks.Any() && !isMined) {
+      return chain.Last().timeStamp > pendingBlocks.Last().timeStamp ? chain.Last() : pendingBlocks.Last();
+    }
+    return chain.Last();
+  }
 
   public string AddBlock(Block block) {
     chain.Add(block);
     totalWork += block.nonce;
     return "Block created successfully";
+  }
+
+  public string AddPendingBlock(Block block) {
+    pendingBlocks.Add(block);
+    return "Block added to pending blocks";
   }
 
   public bool IsValid() {

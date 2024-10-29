@@ -46,7 +46,6 @@ app.UseStaticFiles();
 foreach (var nodeEntry in knownNodes) {
     string publicKey = nodeEntry.Key;
     string nodeIp = nodeEntry.Value;
-    // TODO: create node, recieve chain from it
     if (nodeIp == publicIp) continue;
 
     // recieve chain from node
@@ -81,58 +80,71 @@ app.MapGet("/searchHash", (string hash) => {
     return Results.Json(block);
 });
 
-app.MapPost("/create", async (HttpContext httpContext) =>
-{
+app.MapPost("/create", async (HttpContext httpContext) => {
     var form = await httpContext.Request.ReadFormAsync(); // Read the form data
 
-    // Handle raw text data (blockData)
-    var blockData = form["blockData"].ToString(); // Retrieve the text data if available
+    var blockData = form["blockData"].ToString();
 
-    // Handle file input (optional)
-    var fileInput = form.Files["fileInput"]; // Retrieve the file input if it exists
-    string fileContent = string.Empty;
-    string filePath = string.Empty;
-    
-    if (fileInput != null) {
-        var fileName = fileInput.FileName; // Use the original file name
-        filePath = Path.Combine(fileDirectory, fileName);
-        using (var stream = new FileStream(filePath, FileMode.Create)) {
-            await fileInput.CopyToAsync(stream); // Save the file to the specified path
+    var fileInput = form.Files["fileInput"];
+    var fileContent = "";
+
+    string data;
+    if (string.IsNullOrEmpty(blockData)) {
+        if (fileInput != null) {
+            using (var memoryStream = new MemoryStream()) {
+                await fileInput.CopyToAsync(memoryStream);
+                fileContent = Convert.ToBase64String(memoryStream.ToArray());
+            }
+            var jsonData = new {
+                fileName = form["fileName"].ToString(),
+                fileContent
+            };
+            data = JsonSerializer.Serialize(jsonData);
+            blockchain.AddPendingBlock(Block.NewBlock(blockchain.GetLastBlock(false), data));
         }
-        
-        fileContent = $"/files/{fileName}";
-        Console.WriteLine(fileContent);
-    }
-    var data = !string.IsNullOrEmpty(blockData) ? blockData : fileContent;
-    if (!string.IsNullOrEmpty(data)) {
-        Console.WriteLine($"Block Data: {data}");
-        // Add the block to the pending blocks queue
-        host.pendingBlocks.Add(Block.NewBlock(blockchain.GetLastBlock(), data));
     } else {
-        return Results.BadRequest("No data provided in block creation.");
+        if (fileInput != null) {
+            using (var memoryStream = new MemoryStream()) {
+                await fileInput.CopyToAsync(memoryStream);
+                fileContent = Convert.ToBase64String(memoryStream.ToArray());
+            }
+            var jsonData = new {
+                fileName = form["fileName"].ToString(),
+                fileContent,
+                blockData
+            };
+            data = JsonSerializer.Serialize(jsonData);
+        }
+        else {
+            var jsonData = new {
+                blockData
+            };
+            data = JsonSerializer.Serialize(jsonData);
+        }
+        blockchain.AddPendingBlock(Block.NewBlock(blockchain.GetLastBlock(false), data));
     }
 
+    Console.WriteLine($"Block Data received");
     return Results.Text("Block added to queue of pending blocks");
 });
-
 
 
 app.MapPost("/mine", async (HttpContext httpContext) => {
     using var reader = new StreamReader(httpContext.Request.Body);
     var data = await reader.ReadToEndAsync();
     Console.WriteLine(data);
-    foreach (var block in host.pendingBlocks) {
-        block.prevHash = blockchain.GetLastBlock().hash;
-        block.MineBlock(host.privateKey, host.publicKey);
+    foreach (var block in blockchain.pendingBlocks) {
+        block.prevHash = blockchain.GetLastBlock(true).hash;
+        block.MineBlock(host.publicKey);
         blockchain.AddBlock(block);
-        host.pendingBlocks.Remove(block);
+        blockchain.pendingBlocks.Remove(block);
         return Results.Text($"Block {block} was mined and added to the blockchain");
     }
     return Results.Text("No blocks to mine");
 });
 
 app.MapGet("/pendingBlocks", () => {
-    var pendingBlocks = host.pendingBlocks; // Assuming host has a property PendingBlocks
+    var pendingBlocks = blockchain.pendingBlocks;
     return Results.Json(pendingBlocks);
 });
 
