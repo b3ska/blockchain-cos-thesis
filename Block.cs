@@ -1,4 +1,9 @@
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+
+struct dataTypes {
+}
 
 class Block {
   public int index { get; set; }
@@ -8,7 +13,8 @@ class Block {
   public string hash { get; set; }
   public string signature { get; set; } = "";
   public string publicKey { get; set; } = "";
-  public int nonce { get; set; }
+  public int difficulty { get; set; } = 1;
+  public int nonce { get; set; } = 0;
 
   Block(int index, string previousHash, long timestamp, string data, string hash) {
     this.index = index;
@@ -19,37 +25,54 @@ class Block {
   }
 
   public static Block GenesisBlock() {
-    return new Block(0, "0", 0, "Genesis Block", "");
+    return new Block(0, "prevHash", 0, "Genesis Block", "hash");
   }
 
   public static Block NewBlock(Block previousBlock, string data) {
     var block = new Block(
       previousBlock.index + 1,
       previousBlock.hash,
-      DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+      long.Parse(DateTime.UtcNow.ToString("yyyyMMddHHmmss")),
       data,
       ""
     );
     return block;
   }
 
-  public string MineBlock(string signature, string publicKey) {
+public string MineBlock(string signature) {
     var sha256 = SHA256.Create();
 
     do {
-      nonce++;
-      var hashBytes = sha256.ComputeHash(
-        System.Text.Encoding.UTF8.GetBytes(
-          $"{index}{prevHash}{timeStamp}{data}{nonce}{signature}{publicKey}"
-        )
-      );
-      hash = BitConverter.ToString(hashBytes).ToLower().Replace("-", "");
-    } while (!hash.StartsWith("00d0"));
+        nonce++;
+        var hashBytes = sha256.ComputeHash(
+            Encoding.UTF8.GetBytes(
+                $"{index}{prevHash}{timeStamp}{data}{nonce}{signature}{publicKey}"
+            )
+        );
+        hash = BitConverter.ToString(hashBytes).ToLower().Replace("-", "");
+    } while (!hash.StartsWith("00d" + new string('0', difficulty)));
 
+    var jsonData = JsonSerializer.Deserialize<Dictionary<string, string>>(data);
+    data = "";
+
+    if (jsonData != null && jsonData.ContainsKey("fileContent")) {
+        var fileName = jsonData["fileName"];
+        var fileContent = jsonData["fileContent"];
+
+        var directory = "files/";
+        if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+    
+        var decodedBytes = Convert.FromBase64String(fileContent);
+        File.WriteAllBytes(directory + fileName, decodedBytes);
+        data = fileName;
+    }
+
+    data += jsonData != null && jsonData.ContainsKey("blockData") ? jsonData["blockData"] : "";
     sha256.Dispose();
     this.signature = signature;
-    this.publicKey = publicKey;
+
     Console.WriteLine($"Block mined: {hash}");
     return hash;
   }
 }
+
