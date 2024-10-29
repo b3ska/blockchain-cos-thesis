@@ -34,7 +34,7 @@ button {
 
 .blocks {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: no-wrap;
   gap: 16px;
 }
 

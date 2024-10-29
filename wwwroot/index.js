@@ -4,7 +4,6 @@ const interval = 3000; // Interval in milliseconds
 async function fetchBlocks() {
     const response = await fetch('/blocks');
     const data = await response.json();
-    console.log(data);
     const blocksContainer = document.getElementById('blocks');
     blocksContainer.innerHTML = ''; // Clear previous blocks
 
@@ -42,22 +41,21 @@ async function fetchBlocks() {
             blockList.appendChild(listItem);
         });
 
-        blockDiv.appendChild(blockList); // Add the list to the block div
-        blocksContainer.appendChild(blockDiv); // Finally, append the block div to the main container
+        blockDiv.appendChild(blockList); 
+        blocksContainer.appendChild(blockDiv);
     });
 }
 
 
-// This function checks for pending blocks and mines them if mining is enabled
 async function checkAndMinePendingBlocks() {
-    if (!isMiningEnabled) return; // If mining is not enabled, exit
+    if (!isMiningEnabled) return; 
 
-    const response = await fetch('/pendingBlocks'); // Fetch pending blocks
+    const response = await fetch('/pendingBlocks');
     const pendingBlocks = await response.json();
 
     if (pendingBlocks.length > 0) {
         for (let block of pendingBlocks) {
-            await mineBlock(block); // Mine each pending block
+            await mineBlock(block); 
         }
     }
 }
@@ -78,21 +76,29 @@ async function createBlock() {
     const blockData = document.getElementById('blockData').value;
     const fileInput = document.getElementById('fileInput').files[0];
 
+    document.getElementById('blockData').value = '';
+    document.getElementById('fileInput').value = '';
+
     const formData = new FormData();
     if (blockData) formData.append('blockData', blockData);
     if (fileInput) {
         formData.append('fileInput', fileInput);
-        formData.append('fileName', fileInput.name)
+        console.log(fileInput);
+        formData.append('fileName', fileInput.name);
     }
 
-    const response = await fetch('/create', {
-        method: 'POST',
-        body: formData,
-    });
-
-    const result = await response.text();
-    document.getElementById('result').innerText = result;
-    fetchBlocks(); // Refresh the block view after creation
+    if (fileInput || blockData) {
+        const response = await fetch('/create', {
+            method: 'POST',
+            body: formData,
+        });
+        const result = await response.text();
+        document.getElementById('result').innerText = result;
+        fetchBlocks(); // Refresh the block view after creation
+    }
+    else {
+        alert('Please enter some data or select a file');
+    }
 }
 
 function toggleMining() {
@@ -100,8 +106,7 @@ function toggleMining() {
     console.log("Mining enabled: " + isMiningEnabled);
 
     // If mining is enabled, start the continuous check
-    if (isMiningEnabled) var mining = setInterval(checkAndMinePendingBlocks, interval);
-    else clearInterval(mining);
+    if (isMiningEnabled) checkAndMinePendingBlocks(); //TODO: change it
 }
 
 async function searchBlock() {
