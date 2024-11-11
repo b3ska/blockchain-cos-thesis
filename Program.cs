@@ -1,18 +1,20 @@
 using System.Text.Json;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Http;
-using System.Net.Sockets;
-using TcpClient = System.Net.Sockets.TcpClient;
-using TcpListener = System.Net.Sockets.TcpListener;
 using System.Net;
 using Microsoft.Extensions.FileProviders;
 using System.Security.Cryptography;
 
-using var httpClient = new HttpClient(); // only for automatic public IP detection
-var publicIp = await httpClient.GetStringAsync("https://api.ipify.org");
-Console.WriteLine(publicIp + " is your public IP address that will be used to host the node");
+// using var httpClient = new HttpClient(); // only for automatic public IP detection
+// var publicIp = await httpClient.GetStringAsync("https://api.ipify.org");
+// Console.WriteLine(publicIp + " is your public IP address that will be used to host the node");
+
+var publicIp = Environment.GetEnvironmentVariable("NODE_IP") ?? "127.0.0.1";
+var port = Environment.GetEnvironmentVariable("NODE_PORT") ?? "5000";
+var nodeName = Environment.GetEnvironmentVariable("NODE_NAME") ?? "DefaultNode";
+var nodeKeywords = Environment.GetEnvironmentVariable("NODE_KEYWORDS") ?? "default keywords";
+
+Console.WriteLine($"{publicIp} is your public IP address and port that will be used to host the node");
+Console.WriteLine($"Node Name: {nodeName}");
+Console.WriteLine($"Node Keywords: {nodeKeywords}");
 
 var fileDirectory = "files/";
 
@@ -25,7 +27,8 @@ var app = builder.Build();
 string json = File.ReadAllText("known_nodes.json");
 Dictionary<string, string> knownNodes = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
 
-Node host = new Node("Artem Kalmakov", "banana computer graph", IPAddress.Parse(publicIp));
+Node host = new Node(nodeName, nodeKeywords, IPAddress.Parse(publicIp));
+Console.WriteLine($"Public Key: {host.publicKey}");
 var blockchain = host.chain;
 
 if (knownNodes.ContainsKey(host.publicKey)) {
@@ -33,6 +36,8 @@ if (knownNodes.ContainsKey(host.publicKey)) {
     else {
         knownNodes[host.publicKey] = publicIp;
         Console.WriteLine("This node is already known but has a different IP, updating the known nodes list");
+        json = JsonSerializer.Serialize(knownNodes);
+        File.WriteAllText("known_nodes.json", json);
     }
 } else {
     knownNodes.Add(host.publicKey, publicIp);
@@ -51,7 +56,6 @@ foreach (var nodeEntry in knownNodes) {
     // recieve chain from node
     var node = new Node(publicKey, IPAddress.Parse(nodeIp));
     await host.ConnectNode(node);
-    Console.WriteLine($"Synchronising chain with node with public key: {publicKey} at IP: {nodeIp}");
     
 }
 
@@ -125,6 +129,7 @@ app.MapPost("/create", async (HttpContext httpContext) => {
     }
 
     Console.WriteLine($"Block Data received");
+    host.sendPendingToAll();
     return Results.Text("Block added to queue of pending blocks");
 });
 
@@ -140,6 +145,7 @@ app.MapPost("/mine", async (HttpContext httpContext) => {
         blockchain.pendingBlocks.Remove(block);
         return Results.Text($"Block {block} was mined and added to the blockchain");
     }
+    host.SendChainToAll();
     return Results.Text("No blocks to mine");
 });
 
@@ -156,4 +162,4 @@ app.UseStaticFiles(new StaticFileOptions {
 });
 
 
-app.Run();
+app.Run($"http://{publicIp}:{port}");

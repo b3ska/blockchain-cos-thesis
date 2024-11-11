@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 struct dataTypes {
 }
@@ -28,6 +29,10 @@ class Block {
     return new Block(0, "prevHash", 0, "Genesis Block", "hash");
   }
 
+  public Block() {
+    
+  }
+
   public static Block NewBlock(Block previousBlock, string data) {
     var block = new Block(
       previousBlock.index + 1,
@@ -46,7 +51,7 @@ public string MineBlock(string signature) {
         nonce++;
         var hashBytes = sha256.ComputeHash(
             Encoding.UTF8.GetBytes(
-                $"{index}{prevHash}{timeStamp}{data}{nonce}{signature}{publicKey}"
+                $"{index}{prevHash}{timeStamp}{data}{nonce}{signature}"
             )
         );
         hash = BitConverter.ToString(hashBytes).ToLower().Replace("-", "");

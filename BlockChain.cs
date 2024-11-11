@@ -12,12 +12,18 @@ class BlockChain  {
     pendingBlocks = new List<Block>();
   }
 
-  public BlockChain(List<Block> chain) {
+  public BlockChain(List<Block> chain, List<Block> pendingBlocks) {
+    totalWork = chain.Aggregate(0, (acc, block) => acc + block.nonce);
+    this.pendingBlocks = pendingBlocks;
     this.chain = chain; 
   }
 
   public int getChainLen() {
-    return this.chain.Count();
+    return chain.Count();
+  }
+
+  public int getTotalWork() {
+    return totalWork;
   }
 
   public List<Block> GetBlocks() => chain;
@@ -48,20 +54,11 @@ class BlockChain  {
     for (int i = 1; i < chain.Count; i++) {
       var currentBlock = chain[i];
       var previousBlock = chain[i - 1];
-      if (currentBlock.hash != CalculateHash(currentBlock) || currentBlock.prevHash != previousBlock.hash) {
+      if (currentBlock.prevHash != previousBlock.hash) {
         return false;
       }
     }
     return true;
-  }
-
-  private string CalculateHash(Block block) {
-    using (var sha256 = SHA256.Create()) {
-      var hashBytes = sha256.ComputeHash(
-        System.Text.Encoding.UTF8.GetBytes($"{block.index}{block.prevHash}{block.timeStamp}{block.data}{block.nonce}{block.signature}{block.publicKey}")
-      );
-      return BitConverter.ToString(hashBytes).ToLower().Replace("-", "");
-    }
   }
 
 }
