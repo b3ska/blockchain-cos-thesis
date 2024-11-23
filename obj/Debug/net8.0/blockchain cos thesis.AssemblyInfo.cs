@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("blockchain cos thesis")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e3ef3af06c89ea058a4b73be178e9e8e5d75e72c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f9a22dde9c3e74ddc00da6db383a0ed063fa6a3f")]
 [assembly: System.Reflection.AssemblyProductAttribute("blockchain cos thesis")]
 [assembly: System.Reflection.AssemblyTitleAttribute("blockchain cos thesis")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -21,8 +21,8 @@ async function fetchBlocks() {
 
         // Check if the data is a file URL and create a link if so
         const blockData = block.data;
-        const isFile = blockData.startsWith("/files/");
-        const dataContent = isFile ? `<a href="${blockData}">${blockData.slice(7)}</a>` : blockData;
+        const isFile = blockData.startsWith("file: ");
+        const dataContent = isFile ? `<a href="/getfile?node=${block.publicKey}">Download File</a>` : blockData;
 
         // Create list items for each property
         const properties = [

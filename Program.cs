@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Net;
 using Microsoft.Extensions.FileProviders;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 // using var httpClient = new HttpClient(); // only for automatic public IP detection
 // var publicIp = await httpClient.GetStringAsync("https://api.ipify.org");
@@ -29,7 +30,6 @@ Dictionary<string, string> knownNodes = JsonSerializer.Deserialize<Dictionary<st
 
 Node host = new Node(nodeName, nodeKeywords, IPAddress.Parse(publicIp));
 Console.WriteLine($"Public Key: {host.publicKey}");
-var blockchain = host.chain;
 
 if (knownNodes.ContainsKey(host.publicKey)) {
     if (knownNodes[host.publicKey] == publicIp) Console.WriteLine("This node is already known and has the same IP");
@@ -62,12 +62,12 @@ foreach (var nodeEntry in knownNodes) {
 app.MapGet("/", () => Results.Content(File.ReadAllText("wwwroot/index.html"), "text/html"));
 
 app.MapGet("/blocks", () => {
-    var blocks = blockchain.GetBlocks();
+    var blocks = host.chain.GetBlocks();
     return Results.Json(blocks);
 });
 
 app.MapGet("/searchData", (string data) => {
-    var block = blockchain.GetBlockByData(data);
+    var block = host.chain.GetBlockByData(data);
     if (block == null)
     {
         return Results.NotFound();
@@ -76,7 +76,7 @@ app.MapGet("/searchData", (string data) => {
 });
 
 app.MapGet("/searchHash", (string hash) => {
-    var block = blockchain.GetBlockByHash(hash);
+    var block = host.chain.GetBlockByHash(hash);
     if (block == null)
     {
         return Results.NotFound();
@@ -104,7 +104,7 @@ app.MapPost("/create", async (HttpContext httpContext) => {
                 fileContent
             };
             data = JsonSerializer.Serialize(jsonData);
-            blockchain.AddPendingBlock(Block.NewBlock(blockchain.GetLastBlock(false), data));
+            host.chain.AddPendingBlock(Block.NewBlock(data));
         }
     } else {
         if (fileInput != null) {
@@ -125,7 +125,7 @@ app.MapPost("/create", async (HttpContext httpContext) => {
             };
             data = JsonSerializer.Serialize(jsonData);
         }
-        blockchain.AddPendingBlock(Block.NewBlock(blockchain.GetLastBlock(false), data));
+        host.chain.AddPendingBlock(Block.NewBlock(data));
     }
 
     Console.WriteLine($"Block Data received");
@@ -137,20 +137,32 @@ app.MapPost("/create", async (HttpContext httpContext) => {
 app.MapPost("/mine", async (HttpContext httpContext) => {
     using var reader = new StreamReader(httpContext.Request.Body);
     var data = await reader.ReadToEndAsync();
-    Console.WriteLine(data);
-    foreach (var block in blockchain.pendingBlocks) {
-        block.prevHash = blockchain.GetLastBlock(true).hash;
-        block.MineBlock(host.publicKey);
-        blockchain.AddBlock(block);
-        blockchain.pendingBlocks.Remove(block);
-        return Results.Text($"Block {block} was mined and added to the blockchain");
+    var results = "";
+    
+    var lastMinedBlock = host.chain.GetLastBlock(true);
+    foreach (var block in host.chain.pendingBlocks.ToList()) {
+        if (lastMinedBlock != null) {
+            block.prevHash = lastMinedBlock.hash;
+            block.index = lastMinedBlock.index + 1;
+        } else {
+            Console.WriteLine("No blocks in the chain");
+        }
+        Block minedBlock = block.MineBlock(host.publicKey);
+        host.chain.AddBlock(minedBlock);
+        lastMinedBlock = host.chain.GetLastBlock(true);
+        host.chain.pendingBlocks.Remove(block);
+        results += $"Block mined: {minedBlock.hash}\n";
     }
-    host.SendChainToAll();
-    return Results.Text("No blocks to mine");
+    if (results.Any()) {
+        await host.SendChainToAll();
+        return Results.Text(results);
+    }
+    else return Results.Text("No blocks to mine");
 });
 
+
 app.MapGet("/pendingBlocks", () => {
-    var pendingBlocks = blockchain.pendingBlocks;
+    var pendingBlocks = host.chain.pendingBlocks;
     return Results.Json(pendingBlocks);
 });
 

@@ -33,10 +33,10 @@ class Block {
     
   }
 
-  public static Block NewBlock(Block previousBlock, string data) {
+  public static Block NewBlock(string data) {
     var block = new Block(
-      previousBlock.index + 1,
-      previousBlock.hash,
+      0,
+      "prevHash",
       long.Parse(DateTime.UtcNow.ToString("yyyyMMddHHmmss")),
       data,
       ""
@@ -44,7 +44,7 @@ class Block {
     return block;
   }
 
-public string MineBlock(string signature) {
+public Block MineBlock(string signature) {
     var sha256 = SHA256.Create();
 
     do {
@@ -69,7 +69,7 @@ public string MineBlock(string signature) {
     
         var decodedBytes = Convert.FromBase64String(fileContent);
         File.WriteAllBytes(directory + fileName, decodedBytes);
-        data = fileName;
+        data = "file: " + fileName;
     }
 
     data += jsonData != null && jsonData.ContainsKey("blockData") ? jsonData["blockData"] : "";
@@ -77,7 +77,7 @@ public string MineBlock(string signature) {
     this.signature = signature;
 
     Console.WriteLine($"Block mined: {hash}");
-    return hash;
+    return this;
   }
 }
 

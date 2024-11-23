@@ -12,10 +12,11 @@ class BlockChain  {
     pendingBlocks = new List<Block>();
   }
 
+  // constructor for recieved chain from other nodes
   public BlockChain(List<Block> chain, List<Block> pendingBlocks) {
     totalWork = chain.Aggregate(0, (acc, block) => acc + block.nonce);
+    this.chain = chain;
     this.pendingBlocks = pendingBlocks;
-    this.chain = chain; 
   }
 
   public int getChainLen() {
@@ -46,8 +47,50 @@ class BlockChain  {
   }
 
   public string AddPendingBlock(Block block) {
+    if (pendingBlocks == null) {
+      pendingBlocks = new List<Block> { block };
+      return "Block added to pending blocks";
+    }
     pendingBlocks.Add(block);
     return "Block added to pending blocks";
+  }
+
+  public void cleanMinedBlocks() {
+    foreach (var block in pendingBlocks) {
+      foreach (var chainBlock in chain) {
+        if (block.timeStamp == chainBlock.timeStamp) {
+          Console.WriteLine($"Block {chainBlock.index} in chain");
+          if (chainBlock.data.Contains("file: ")) {
+            // handle file
+          }
+          pendingBlocks.Remove(block);
+        }
+      }
+    }
+  }
+
+  public bool ContainsBlock(Block block) {
+    if (pendingBlocks.Count != 0) {
+      foreach (Block b in pendingBlocks) {
+        if (b.data == block.data && b.timeStamp == block.timeStamp) 
+          return true;
+        }
+    }
+    if (chain.Count != 0) {
+      foreach (Block b in chain) {
+        if (b.data == block.data && b.timeStamp == block.timeStamp) 
+          return true;
+        }
+    }
+    return false;
+  }
+
+  public static bool operator == (BlockChain a, BlockChain b) {
+    return a.GetBlocks().SequenceEqual(b.GetBlocks()) ? true : false;
+  }
+
+  public static bool operator != (BlockChain a, BlockChain b) {
+    return a.GetBlocks().SequenceEqual(b.GetBlocks()) ? false : true;
   }
 
   public bool IsValid() {
