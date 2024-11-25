@@ -79,5 +79,6 @@ public Block MineBlock(string signature) {
     Console.WriteLine($"Block mined: {hash}");
     return this;
   }
+
 }
 

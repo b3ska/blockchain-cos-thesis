@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/blockchain cos thesis.csproj": {}
+    "/Users/beska/Documents/Coding/blockchain-cos-thesis/blockchain cos thesis.csproj": {}
   },
   "projects": {
-    "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/blockchain cos thesis.csproj": {
+    "/Users/beska/Documents/Coding/blockchain-cos-thesis/blockchain cos thesis.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/blockchain cos thesis.csproj",
+        "projectUniqueName": "/Users/beska/Documents/Coding/blockchain-cos-thesis/blockchain cos thesis.csproj",
         "projectName": "blockchain cos thesis",
-        "projectPath": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/blockchain cos thesis.csproj",
-        "packagesPath": "/home/beska/.nuget/packages/",
-        "outputPath": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/",
+        "projectPath": "/Users/beska/Documents/Coding/blockchain-cos-thesis/blockchain cos thesis.csproj",
+        "packagesPath": "/Users/beska/.nuget/packages/",
+        "outputPath": "/Users/beska/Documents/Coding/blockchain-cos-thesis/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/beska/.nuget/NuGet/NuGet.Config"
+          "/Users/beska/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,6 +32,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -84,7 +89,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/8.0.110/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.402/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
