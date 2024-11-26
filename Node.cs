@@ -9,13 +9,14 @@ class Node
     public string publicKey { get; set; }
     public string? privateKey { get; set; }
     public IPAddress address { get; set; }
+    public int port { get; set; } = 8080;
     public string status { get; set; } = "Disconnected";
     public BlockChain? chain { get; set; }
     public List<Node>? nodes { get; set; }
     public TcpClient client { get; set; } = new TcpClient();
     public TcpListener? listener { get; set; }
 
-    public Node(string name, string keywords, IPAddress address)
+    public Node(string name, string keywords, IPAddress address, int port)
     {
         var sha256 = SHA256.Create();
         privateKey = BitConverter.ToString(sha256.ComputeHash(Encoding.UTF8.GetBytes($"{keywords}{name}"))).Replace("-", "").ToLower();
@@ -25,24 +26,25 @@ class Node
         status = "Host";
         chain = new BlockChain();
         nodes = new List<Node>();
-        listener = new TcpListener(IPAddress.Any, 8080);
+        listener = new TcpListener(IPAddress.Any, port);
         listener.Start();
         _ = AcceptClientsAsync();
     }
 
-    public Node(string publicKey, IPAddress address)
+    public Node(string publicKey, IPAddress address, int port)
     {
         this.publicKey = publicKey;
         this.address = address;
+        this.port = port;
     }
 
     public async Task ConnectNode(Node node)
     {
         try
         {
-            if (nodes != null && nodes.Any(n => n.address.Equals(node.address)))
+            if (nodes != null && nodes.Any(n => n.address.Equals(node.address) && n.port == node.port))
             {
-                Console.WriteLine($"Already connected to node {node.address}");
+                Console.WriteLine($"Already connected to node {node.address}:{node.port}");
                 return;
             }
         }
@@ -57,22 +59,23 @@ class Node
         {
             try
             {
-                node.client.Connect(node.address, 8080);
+                node.client.Connect(node.address, node.port);
                 if (node.client.Connected)
                 {
                     node.status = "Not verified";
                     nodes.Add(node);
                     await sendPublicKey(node);
                     _ = ListenForPublicKey(node);
-                    Console.WriteLine($"connected and sent public key to {node.address}");
+                    Console.WriteLine($"connected and sent public key to {node.address}:{node.port}");
                     break;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to connect to {node.address}: {ex.Message}");
+                Console.WriteLine($"Failed to connect to {node.address}:{node.port}: {ex.Message}");
                 node.status = "Disconnected";
                 node.client.Close();
+                node.client = new TcpClient();
                 retries--;
             }
         }
@@ -103,7 +106,8 @@ class Node
             var reader = new StreamReader(stream, Encoding.UTF8);
 
             IPEndPoint remoteIpEndPoint = client.Client.RemoteEndPoint as IPEndPoint;
-            var nodesByAddress = FindNodesByAddress(remoteIpEndPoint.Address);
+            Console.WriteLine($"Client connected from {remoteIpEndPoint.Address}:{remoteIpEndPoint.Port}");
+            var nodesByAddress = FindNodesByAddress(remoteIpEndPoint.Address, remoteIpEndPoint.Port);
 
             if (nodesByAddress == null || nodesByAddress.Count == 0 || nodesByAddress[0].status == "Not verified")
             {
@@ -111,7 +115,7 @@ class Node
                 if (message != null && message.StartsWith("PUBLIC_KEY:"))
                 {
                     string publicKey = message.Substring("PUBLIC_KEY:".Length);
-                    Node node = new Node(publicKey, remoteIpEndPoint.Address);
+                    Node node = new Node(publicKey, remoteIpEndPoint.Address, remoteIpEndPoint.Port);
                     node.client = client;
                     node.status = "Connected";
                     nodes.Add(node);
@@ -120,7 +124,7 @@ class Node
                     await SendChain(node);
 
 
-                    Console.WriteLine($"{node.address} | {node.status} - added client");
+                    Console.WriteLine($"{node.address}:{node.port} | {node.status} - added client");
 
                     _ = ListenForMessages(node);
                     _ = HeartbeatClient(node);
@@ -141,7 +145,7 @@ class Node
                 await sendPublicKey(node);
                 await SendChain(node);
 
-                Console.WriteLine($"{node.address} | {node.status} - updated client");
+                Console.WriteLine($"{node.address}:{node.port} | {node.status} - updated client");
                 _ = ListenForMessages(node);
                 _ = HeartbeatClient(node);
             }
@@ -192,11 +196,11 @@ class Node
             await stream.WriteAsync(data, 0, data.Length);
             await stream.FlushAsync();
 
-            Console.WriteLine($"Sent pending blocks to {node.address}");
+            Console.WriteLine($"Sent pending blocks to {node.address}:{node.port}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to send pending blocks to {node.address}: {ex.Message}");
+            Console.WriteLine($"Failed to send pending blocks to {node.address}:{node.port}: {ex.Message}");
         }
     }
 
@@ -233,7 +237,7 @@ class Node
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to send chain to {node.address}: {ex.Message}");
+                Console.WriteLine($"Failed to send chain to {node.address}:{node.port}: {ex.Message}");
                 retries--;
                 await Task.Delay(5000);
             }
@@ -353,10 +357,10 @@ class Node
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending heartbeat to {node.address}: {ex.Message}");
+                Console.WriteLine($"Error sending heartbeat to {node.address}:{node.port}: {ex.Message}");
                 client.Close();
                 nodes.Remove(node);
-                Console.WriteLine($"Node {node.address} disconnected in heartbeat");
+                Console.WriteLine($"Node {node.address}:{node.port} disconnected in heartbeat");
                 break;
             }
         }
@@ -380,9 +384,9 @@ class Node
                         if (node.publicKey == publicKey)
                         {
                             node.status = "Connected";
-                            Console.WriteLine($"Public key verified for {node.address}");
+                            Console.WriteLine($"Public key verified for {node.address}:{node.port}");
                         }
-                        else Console.WriteLine($"Public key mismatch for {node.address}");
+                        else Console.WriteLine($"Public key mismatch for {node.address}:{node.port}");
                         break;
                     }
                 }
@@ -394,7 +398,7 @@ class Node
         }
         catch (IOException ex)
         {
-            Console.WriteLine($"Error handling client {node.address}: {ex.Message}");
+            Console.WriteLine($"Error handling client {node.address}:{node.port}: {ex.Message}");
             node.status = "Disconnected";
         }
         finally
@@ -428,7 +432,7 @@ class Node
                     }
                     else if (message == "HEARTBEAT")
                     {
-                        Console.WriteLine($"hb from {node.address}");
+                        Console.WriteLine($"hb from {node.address}:{node.port}");
                     }
                 }
                 else
@@ -439,12 +443,12 @@ class Node
         }
         catch (IOException ex)
         {
-            Console.WriteLine($"Error handling client {node.address}: {ex.Message}");
+            Console.WriteLine($"Error handling client {node.address}:{node.port}: {ex.Message}");
             node.status = "Disconnected";
         }
         finally
         {
-            Console.WriteLine($"Node {node.address} listener finished");
+            Console.WriteLine($"Node {node.address}:{node.port} listener finished");
             client.Close();
             nodes.Remove(node);
             Task.Delay(3000);
@@ -457,9 +461,10 @@ class Node
         return nodes.FindAll(node => node.publicKey == publicKey);
     }
 
-    public List<Node> FindNodesByAddress(IPAddress address)
+    public List<Node> FindNodesByAddress(IPAddress address, int port = 0)
     {
-        return nodes.Where(node => node.address.Equals(address)).ToList();
+        if (port == 0) return nodes.Where(node => node.address.Equals(address)).ToList();
+        else return nodes.Where(node => node.address.Equals(address) && node.port == port).ToList();
     }
 
     private class ChainUpdateMessage

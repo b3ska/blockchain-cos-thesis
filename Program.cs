@@ -8,12 +8,12 @@ using Microsoft.AspNetCore.Mvc.Routing;
 // var publicIp = await httpClient.GetStringAsync("https://api.ipify.org");
 // Console.WriteLine(publicIp + " is your public IP address that will be used to host the node");
 
-var publicIp = Environment.GetEnvironmentVariable("NODE_IP") ?? "127.0.0.1";
-var port = Environment.GetEnvironmentVariable("NODE_PORT") ?? "5000";
+var publicIp = Environment.GetEnvironmentVariable("NODE_IP") ?? "192.168.0.57";
+var port = Environment.GetEnvironmentVariable("NODE_PORT") ?? "8000";
 var nodeName = Environment.GetEnvironmentVariable("NODE_NAME") ?? "DefaultNode";
 var nodeKeywords = Environment.GetEnvironmentVariable("NODE_KEYWORDS") ?? "default keywords";
 
-Console.WriteLine($"{publicIp} is your public IP address and port that will be used to host the node");
+Console.WriteLine($"{publicIp}:{port} is your IP address and port that will be used to host the node");
 Console.WriteLine($"Node Name: {nodeName}");
 Console.WriteLine($"Node Keywords: {nodeKeywords}");
 
@@ -28,19 +28,19 @@ var app = builder.Build();
 string json = File.ReadAllText("known_nodes.json");
 Dictionary<string, string> knownNodes = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
 
-Node host = new Node(nodeName, nodeKeywords, IPAddress.Parse(publicIp));
+Node host = new Node(nodeName, nodeKeywords, IPAddress.Parse(publicIp), int.Parse(port)); 
 Console.WriteLine($"Public Key: {host.publicKey}");
 
 if (knownNodes.ContainsKey(host.publicKey)) {
-    if (knownNodes[host.publicKey] == publicIp) Console.WriteLine("This node is already known and has the same IP");
+    if (knownNodes[host.publicKey] == publicIp+":"+port) Console.WriteLine("This node is already known and has the same IP");
     else {
-        knownNodes[host.publicKey] = publicIp;
+        knownNodes[host.publicKey] = publicIp+":"+port;
         Console.WriteLine("This node is already known but has a different IP, updating the known nodes list");
         json = JsonSerializer.Serialize(knownNodes);
         File.WriteAllText("known_nodes.json", json);
     }
 } else {
-    knownNodes.Add(host.publicKey, publicIp);
+    knownNodes.Add(host.publicKey, publicIp+":"+port);
     json = JsonSerializer.Serialize(knownNodes);
     File.WriteAllText("known_nodes.json", json);
     Console.WriteLine("This node is new and has been added to the known nodes list");
@@ -50,11 +50,13 @@ app.UseStaticFiles();
 
 foreach (var nodeEntry in knownNodes) {
     string publicKey = nodeEntry.Key;
-    string nodeIp = nodeEntry.Value;
-    if (nodeIp == publicIp) continue;
+    string nodeAddress = nodeEntry.Value;
+    string nodePort = nodeAddress.Split(":")[1];
+    string nodeIp = nodeAddress.Split(":")[0];
+    if (nodeIp+":"+nodePort == publicIp+":"+port) continue;
 
-    // recieve chain from node
-    var node = new Node(publicKey, IPAddress.Parse(nodeIp));
+    // connecting to the node
+    var node = new Node(publicKey, IPAddress.Parse(nodeIp), int.Parse(nodePort));
     await host.ConnectNode(node);
     
 }
