@@ -8,7 +8,10 @@ using Microsoft.AspNetCore.Mvc.Routing;
 // var publicIp = await httpClient.GetStringAsync("https://api.ipify.org");
 // Console.WriteLine(publicIp + " is your public IP address that will be used to host the node");
 
-var publicIp = Environment.GetEnvironmentVariable("NODE_IP") ?? "192.168.0.57";
+
+string hostName = Dns.GetHostName(); // Retrive the Name of HOST
+string localIp = Dns.GetHostByName(hostName).AddressList[0].ToString();
+var publicIp = Environment.GetEnvironmentVariable("NODE_IP") ?? localIp;
 var port = Environment.GetEnvironmentVariable("NODE_PORT") ?? "8000";
 var nodeName = Environment.GetEnvironmentVariable("NODE_NAME") ?? "DefaultNode";
 var nodeKeywords = Environment.GetEnvironmentVariable("NODE_KEYWORDS") ?? "default keywords";
