@@ -1518,19 +1518,19 @@
     ]
   },
   "packageFolders": {
-    "/Users/beska/.nuget/packages/": {}
+    "/home/beska/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/beska/Documents/Coding/blockchain-cos-thesis/blockchain cos thesis.csproj",
+      "projectUniqueName": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/blockchain cos thesis.csproj",
       "projectName": "blockchain cos thesis",
-      "projectPath": "/Users/beska/Documents/Coding/blockchain-cos-thesis/blockchain cos thesis.csproj",
-      "packagesPath": "/Users/beska/.nuget/packages/",
-      "outputPath": "/Users/beska/Documents/Coding/blockchain-cos-thesis/obj/",
+      "projectPath": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/blockchain cos thesis.csproj",
+      "packagesPath": "/home/beska/.nuget/packages/",
+      "outputPath": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/beska/.nuget/NuGet/NuGet.Config"
+        "/home/beska/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -1548,11 +1548,6 @@
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -1605,7 +1600,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.402/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/8.0.110/PortableRuntimeIdentifierGraph.json"
       }
     }
   },

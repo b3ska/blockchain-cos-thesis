@@ -56,10 +56,9 @@ class BlockChain  {
   }
 
   public void cleanMinedBlocks() {
-    foreach (var block in pendingBlocks) {
-      foreach (var chainBlock in chain) {
+    foreach (var block in pendingBlocks.ToList()) {
+      foreach (var chainBlock in chain.ToList()) {
         if (block.timeStamp == chainBlock.timeStamp) {
-          Console.WriteLine($"Block {chainBlock.index} in chain");
           if (chainBlock.data.Contains("file: ")) {
             // handle file
           }

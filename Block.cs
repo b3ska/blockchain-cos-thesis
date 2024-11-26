@@ -14,7 +14,7 @@ class Block {
   public string hash { get; set; }
   public string signature { get; set; } = "";
   public string publicKey { get; set; } = "";
-  public int difficulty { get; set; } = 1;
+  public int difficulty { get; set; } = 0;
   public int nonce { get; set; } = 0;
 
   Block(int index, string previousHash, long timestamp, string data, string hash) {

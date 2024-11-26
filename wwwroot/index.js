@@ -22,7 +22,7 @@ async function fetchBlocks() {
         // Check if the data is a file URL and create a link if so
         const blockData = block.data;
         const isFile = blockData.startsWith("file: ");
-        const dataContent = isFile ? `<a href="/getfile?node=${block.publicKey}">Download File</a>` : blockData;
+        const dataContent = isFile ? `<a href="/getfile?publicIp=${block.signature}&fileName=${blockData.split(": ")[1]}">${blockData.replace("file: ", "")}}</a>` : blockData;
 
         // Create list items for each property
         const properties = [
@@ -31,7 +31,6 @@ async function fetchBlocks() {
             { label: 'Data', value: dataContent },  // Link if it's a file
             { label: 'Hash', value: block.hash },
             { label: 'Signature', value: block.signature },
-            { label: 'Public Key', value: block.publicKey },
             { label: 'Nonce', value: block.nonce }
         ];
 

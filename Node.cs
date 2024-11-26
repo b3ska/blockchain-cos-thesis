@@ -366,6 +366,60 @@ class Node
         }
     }
 
+    public async Task<string> requestFile(string publicKey, string fileName)
+    {
+        var matchingNodes = FindNodesByPublicKey(publicKey);
+        if (matchingNodes == null || matchingNodes.Count == 0)
+        {
+            Console.WriteLine($"Node with public key {publicKey} not found.");
+            return "Not available";
+        }
+
+        Node node = matchingNodes[0];
+        try
+        {
+            string message = $"FILE REQUEST:{fileName}\n";
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            NetworkStream stream = node.client.GetStream();
+            await stream.WriteAsync(data, 0, data.Length);
+            await stream.FlushAsync();
+            Console.WriteLine($"Sent file request to {node.address}:{node.port}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to send file request to {node.address}:{node.port}: {ex.Message}");
+            return "Request failed";
+        }
+        return "Request sent";
+    }
+
+    private async Task HandleFileRequest(Node node, string fileName)
+    {
+        try
+        {
+            string filePath = Path.Combine("files", fileName);
+            byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+            string fileContent = Convert.ToBase64String(fileBytes);
+
+            var fileMessage = new
+            {
+                FileName = fileName,
+                FileContent = fileContent
+            };
+
+            string message = $"FILE:{JsonSerializer.Serialize(fileMessage)}\n";
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            NetworkStream stream = node.client.GetStream();
+            await stream.WriteAsync(data, 0, data.Length);
+            await stream.FlushAsync();
+            Console.WriteLine($"Sent file {fileName} to {node.address}:{node.port}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to send file to {node.address}:{node.port}: {ex.Message}");
+        }
+    }
+
     private async Task ListenForPublicKey(Node node)
     {
         var client = node.client;
@@ -433,6 +487,20 @@ class Node
                     else if (message == "HEARTBEAT")
                     {
                         Console.WriteLine($"hb from {node.address}:{node.port}");
+                    }
+                    else if (message.StartsWith("FILE REQUEST:"))
+                    {
+                        string fileName = message.Substring("FILE REQUEST:".Length);
+                        await HandleFileRequest(node, fileName);
+                    } else if (message.StartsWith("FILE:"))
+                    {
+                        string fileMessage = message.Substring("FILE:".Length);
+                        var fileObject = JsonSerializer.Deserialize<Dictionary<string, string>>(fileMessage);
+                        string fileName = fileObject["FileName"];
+                        string fileContent = fileObject["FileContent"];
+                        var decodedBytes = Convert.FromBase64String(fileContent);
+                        File.WriteAllBytes(Path.Combine("files", fileName), decodedBytes);
+                        Console.WriteLine($"Received file {fileName} from {node.address}:{node.port}");
                     }
                 }
                 else

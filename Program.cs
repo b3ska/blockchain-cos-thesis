@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 
 
 string hostName = Dns.GetHostName(); // Retrive the Name of HOST
-string localIp = Dns.GetHostByName(hostName).AddressList[0].ToString();
+string localIp = Dns.GetHostByName(hostName).AddressList[1].ToString();   ;
 var publicIp = Environment.GetEnvironmentVariable("NODE_IP") ?? localIp;
 var port = Environment.GetEnvironmentVariable("NODE_PORT") ?? "8000";
 var nodeName = Environment.GetEnvironmentVariable("NODE_NAME") ?? "DefaultNode";
@@ -138,7 +138,6 @@ app.MapPost("/create", async (HttpContext httpContext) => {
     return Results.Text("Block added to queue of pending blocks");
 });
 
-
 app.MapPost("/mine", async (HttpContext httpContext) => {
     using var reader = new StreamReader(httpContext.Request.Body);
     var data = await reader.ReadToEndAsync();
@@ -165,10 +164,16 @@ app.MapPost("/mine", async (HttpContext httpContext) => {
     else return Results.Text("No blocks to mine");
 });
 
-
 app.MapGet("/pendingBlocks", () => {
     var pendingBlocks = host.chain.pendingBlocks;
     return Results.Json(pendingBlocks);
+});
+
+app.MapGet("/getfile", async (string publicIp, string fileName) =>
+{
+    var responseString = await host.requestFile(publicIp, fileName);
+    return Results.Text(responseString);
+    
 });
 
 app.UseStaticFiles(new StaticFileOptions {
@@ -178,5 +183,4 @@ app.UseStaticFiles(new StaticFileOptions {
     DefaultContentType = "application/octet-stream" // Default MIME type if none is provided
 });
 
-
-app.Run($"http://{publicIp}:{port}");
+app.Run($"http://{publicIp}:{port.Replace("8", "5")}");
