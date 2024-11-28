@@ -29,7 +29,7 @@ class BlockChain  {
 
   public List<Block> GetBlocks() => chain;
 
-  public Block? GetBlockByData(string data) => chain.Find(block => block.data.Contains(data));
+  public List<Block>? GetBlocksByData(string data) => chain.FindAll(block => block.data.Contains(data));
 
   public Block? GetBlockByHash(string hash) => chain.Find(block => block.hash == hash);
 
@@ -59,9 +59,6 @@ class BlockChain  {
     foreach (var block in pendingBlocks.ToList()) {
       foreach (var chainBlock in chain.ToList()) {
         if (block.timeStamp == chainBlock.timeStamp) {
-          if (chainBlock.data.Contains("file: ")) {
-            // handle file
-          }
           pendingBlocks.Remove(block);
         }
       }

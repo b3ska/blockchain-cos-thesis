@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "uzzJow5jPie6Bo8293yPLMBMi8NTi1+nklnIsP1yoW4=",
+  "Hash": "uB/BGal2tSL/qgOn5jLQ+GVhCjJSx18Hwacf/kqnYZU=",
   "Source": "blockchain cos thesis",
   "BasePath": "_content/blockchain cos thesis",
   "Mode": "Default",
@@ -10,17 +10,17 @@
     {
       "Name": "blockchain cos thesis/wwwroot",
       "Source": "blockchain cos thesis",
-      "ContentRoot": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/",
+      "ContentRoot": "/Users/beska/Documents/Coding/blockchain-cos-thesis/wwwroot/",
       "BasePath": "_content/blockchain cos thesis",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/index.html",
+      "Identity": "/Users/beska/Documents/Coding/blockchain-cos-thesis/wwwroot/index.html",
       "SourceId": "blockchain cos thesis",
       "SourceType": "Discovered",
-      "ContentRoot": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/",
+      "ContentRoot": "/Users/beska/Documents/Coding/blockchain-cos-thesis/wwwroot/",
       "BasePath": "_content/blockchain cos thesis",
       "RelativePath": "index.html",
       "AssetKind": "All",
@@ -36,10 +36,10 @@
       "OriginalItemSpec": "wwwroot/index.html"
     },
     {
-      "Identity": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/index.js",
+      "Identity": "/Users/beska/Documents/Coding/blockchain-cos-thesis/wwwroot/index.js",
       "SourceId": "blockchain cos thesis",
       "SourceType": "Discovered",
-      "ContentRoot": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/",
+      "ContentRoot": "/Users/beska/Documents/Coding/blockchain-cos-thesis/wwwroot/",
       "BasePath": "_content/blockchain cos thesis",
       "RelativePath": "index.js",
       "AssetKind": "All",
@@ -55,10 +55,10 @@
       "OriginalItemSpec": "wwwroot/index.js"
     },
     {
-      "Identity": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/styles.css",
+      "Identity": "/Users/beska/Documents/Coding/blockchain-cos-thesis/wwwroot/styles.css",
       "SourceId": "blockchain cos thesis",
       "SourceType": "Discovered",
-      "ContentRoot": "/home/beska/Documents/Code/blockchain cos thesis/blockchain cos thesis/wwwroot/",
+      "ContentRoot": "/Users/beska/Documents/Coding/blockchain-cos-thesis/wwwroot/",
       "BasePath": "_content/blockchain cos thesis",
       "RelativePath": "styles.css",
       "AssetKind": "All",

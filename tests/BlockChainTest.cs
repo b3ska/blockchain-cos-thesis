@@ -39,9 +39,9 @@ public class BlockChainTest
     BlockChain blockChain = new BlockChain();
     Block block = new Block { data = "Test Data", nonce = 1, hash = "hash1", prevHash = "prevHash1", timeStamp = long.Parse(DateTime.UtcNow.ToString("yyyyMMddHHmmss")) };
     blockChain.AddBlock(block);
-    Block? result = blockChain.GetBlockByData("Test Data");
+    List <Block>? result = blockChain.GetBlocksByData("Test Data");
     Assert.NotNull(result);
-    Assert.Equal("Test Data", result.data);
+    Assert.Equal("Test Data", result[0].data);
   }
 
   [Fact]

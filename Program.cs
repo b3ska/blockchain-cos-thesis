@@ -4,14 +4,13 @@ using Microsoft.Extensions.FileProviders;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Mvc.Routing;
 
-// using var httpClient = new HttpClient(); // only for automatic public IP detection
-// var publicIp = await httpClient.GetStringAsync("https://api.ipify.org");
-// Console.WriteLine(publicIp + " is your public IP address that will be used to host the node");
+using var httpClient = new HttpClient(); // only for automatic public IP detection
+var publicIp = await httpClient.GetStringAsync("https://api.ipify.org");
 
+// string hostName = Dns.GetHostName(); // for the local ip retrieval
+// string localIp = Dns.GetHostByName(hostName).AddressList[0].ToString();
 
-string hostName = Dns.GetHostName(); // Retrive the Name of HOST
-string localIp = Dns.GetHostByName(hostName).AddressList[1].ToString();   ;
-var publicIp = Environment.GetEnvironmentVariable("NODE_IP") ?? localIp;
+publicIp = Environment.GetEnvironmentVariable("NODE_IP") ?? publicIp;
 var port = Environment.GetEnvironmentVariable("NODE_PORT") ?? "8000";
 var nodeName = Environment.GetEnvironmentVariable("NODE_NAME") ?? "DefaultNode";
 var nodeKeywords = Environment.GetEnvironmentVariable("NODE_KEYWORDS") ?? "default keywords";
@@ -72,12 +71,12 @@ app.MapGet("/blocks", () => {
 });
 
 app.MapGet("/searchData", (string data) => {
-    var block = host.chain.GetBlockByData(data);
-    if (block == null)
+    var blocks = host.chain.GetBlocksByData(data);
+    if (blocks == null)
     {
         return Results.NotFound();
     }
-    return Results.Json(block);
+    return Results.Json(blocks);
 });
 
 app.MapGet("/searchHash", (string hash) => {

@@ -175,7 +175,9 @@ class Node
     {
         foreach (Node n in nodes)
         {
-            await SendPending(n);
+            if (n.status == "Connected") {
+                await SendPending(n);
+            }
         }
     }
 
@@ -208,7 +210,9 @@ class Node
     {
         foreach (Node n in nodes)
         {
-            await SendChain(n);
+            if (n.status == "Connected") {
+                await SendChain(n);
+            }
         }
     }
 
@@ -353,7 +357,7 @@ class Node
                 byte[] data = Encoding.UTF8.GetBytes("HEARTBEAT\n");
                 await stream.WriteAsync(data, 0, data.Length);
                 await stream.FlushAsync();
-                await Task.Delay(10000);
+                await Task.Delay(60000);
             }
             catch (Exception ex)
             {

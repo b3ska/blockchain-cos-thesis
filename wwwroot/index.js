@@ -22,7 +22,7 @@ async function fetchBlocks() {
         // Check if the data is a file URL and create a link if so
         const blockData = block.data;
         const isFile = blockData.startsWith("file: ");
-        const dataContent = isFile ? `<a href="/getfile?publicIp=${block.signature}&fileName=${blockData.split(": ")[1]}">${blockData.replace("file: ", "")}}</a>` : blockData;
+        const dataContent = isFile ? `<a href="/getfile?publicIp=${block.signature}&fileName=${blockData.split(": ")[1]}">${blockData.replace("file: ", "")}</a>` : blockData;
 
         // Create list items for each property
         const properties = [
@@ -45,27 +45,13 @@ async function fetchBlocks() {
     });
 }
 
-
-async function checkAndMinePendingBlocks() {
-    if (!isMiningEnabled) return; 
-
-    const response = await fetch('/pendingBlocks');
-    const pendingBlocks = await response.json();
-
-    if (pendingBlocks.length > 0) {
-        for (let block of pendingBlocks) {
-            await mineBlock(block); 
-        }
-    }
-}
-
-async function mineBlock(block) {
+async function mineBlocks() {
     const response = await fetch('/mine', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(block),
+        body: "{}",
     });
     const result = await response.text();
     console.log(result); // Log the mining result
@@ -100,20 +86,50 @@ async function createBlock() {
     }
 }
 
-function toggleMining() {
-    isMiningEnabled = document.getElementById('mineCheckbox').checked;
-    console.log("Mining enabled: " + isMiningEnabled);
-
-    // If mining is enabled, start the continuous check
-    if (isMiningEnabled) checkAndMinePendingBlocks(); //TODO: change it
-}
-
 async function searchBlock() {
     const data = prompt('Enter block data to search for:');
     if (data) {
         const response = await fetch(`/searchData?data=${encodeURIComponent(data)}`);
         const result = await response.json();
-        document.getElementById('result').innerText = JSON.stringify(result, null, 2);
+        const resultContainer = document.getElementById('result');
+        resultContainer.innerHTML = ''; // Clear previous results
+
+        result.forEach(block => {
+            const blockDiv = document.createElement('div');
+            blockDiv.classList.add('block');
+
+            // Create an h3 element for the block index
+            const indexHeader = document.createElement('h3');
+            indexHeader.innerText = `Block #${block.index}`;
+            blockDiv.appendChild(indexHeader);
+
+            // Create a list for block properties
+            const blockList = document.createElement('ul');
+
+            // Check if the data is a file URL and create a link if so
+            const blockData = block.data;
+            const isFile = blockData.startsWith("file: ");
+            const dataContent = isFile ? `<a href="/getfile?publicIp=${block.signature}&fileName=${blockData.split(": ")[1]}">${blockData.replace("file: ", "")}</a>` : blockData;
+
+            // Create list items for each property
+            const properties = [
+                { label: 'Previous Hash', value: block.prevHash },
+                { label: 'Timestamp', value: block.timeStamp },
+                { label: 'Data', value: dataContent },  // Link if it's a file
+                { label: 'Hash', value: block.hash },
+                { label: 'Signature', value: block.signature },
+                { label: 'Nonce', value: block.nonce }
+            ];
+
+            properties.forEach(prop => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<strong>${prop.label}:</strong> ${prop.value}`;
+                blockList.appendChild(listItem);
+            });
+
+            blockDiv.appendChild(blockList);
+            resultContainer.appendChild(blockDiv);
+        });
     }
 }
 
